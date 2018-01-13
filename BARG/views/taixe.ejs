@@ -74,3 +74,164 @@
 <script src="/javascripts/quanly.js"></script>
 <script type="text/javascript" src="//maps.google.com/maps/api/js?key=AIzaSyBncB2ICS1K_lnsE7HvyF6UngwpH-REnM4&amp;sensor=false"></script>
 <script>
+    var person;
+    (function ($) {
+        function TaiXe(data) {
+            var self = this,
+                socket = data._socket,
+                clientId = null,
+                khachhang = null,
+                dienthoai = data.sdt;
+            this.info = {};
+            this.timeTrackLocation = null;
+            this.cancelRequestTimeout = null;
+            this.randomNumber = function () {
+                return 1 + Math.floor(Math.random() * 130);
+            };
+            
+            this.showMarker = function(data){
+                self.hideMarker();
+                khachhang = new Person(data);
+                khachhang.initMarker();
+            };
+            this.initMap = function (options) {
+                options = $.extend({}, {
+                    zoom: 12,
+                    center: {lat: 10.7588056, lng: 106.68393590000005}
+                }, options);
+                map = new google.maps.Map(document.getElementById('map'), options);
+            };
+            
+            this.hideMarker = function(){
+                if(khachhang) {
+                    khachhang.hideOnMap();
+                    khachhang = null;
+                }
+            }
+
+            this.randomAddress = function () {
+                return this.randomNumber() + " Nguyễn Văn Cừ, Quận 5, Thành phố Hồ Chí Minh";
+            };
+            
+            this.locationCallback = function(position){
+                if(undefined !== position){
+                    socket.emit("taixe-capnhat-diachi", {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude,
+                        id: self.info.id
+                    });
+                }
+                self.trackLocation();
+            };
+            this.getLocation = function () {
+                clearInterval(self.timeTrackLocation);
+                self.timeTrackLocation = null;
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(self.locationCallback);
+                }
+            };
+
+            this.trackLocation = function () {
+                if (null === self.timeTrackLocation) {
+                    console.log("Start Track");
+                    var timeDelay = 5000;
+                    self.timeTrackLocation = setInterval(self.getLocation, timeDelay);
+                }
+            };
+            
+
+            this.initSocketEvent = function () {                
+                socket.emit('new-driver', {
+                    diachi: this.randomAddress(),
+                    sdt: dienthoai
+                });
+                
+                socket.on('dang-nhap-thanh-cong', function(data){
+                    self.info = data;
+                });
+
+                socket.on('submit-request', function (data) {
+                    $('.message').html('');
+                    self.clientId = data;
+                    $('#so-dien-thoai').val(data.sdt);
+                    $('#dia-chi').val(data.diachi);
+                    $('form button.has-disable').prop('disabled', false);
+                    data.address = data.diachi;
+                    data.draggable = false;
+                    self.showMarker(data);
+                    alert("Bạn có khách, vui lòng chấp nhận hoặc từ chối. Sau 5 giây sẽ tự động từ chối khách");
+                    self.cancelRequestTimeout = setTimeout(self.tuChoiKhach,5000);
+                });
+
+                $('.chap-nhan').click(function (e) {
+                    e.preventDefault();
+                    self.chapNhanKhach();
+                });
+                
+                $('.tu-choi').click(function (e) {
+                    e.preventDefault();
+                    self.tuChoiKhach();
+                });
+                
+                $('.hoan-thanh').click(function(e){
+                    e.preventDefault();
+                    self.hoanThanh();
+                });
+                this.trackLocation();
+            };
+            
+            this.chapNhanKhach = function(){
+                $('.message').html('Chap nhan khach');
+                $('form button').prop('disabled', true);
+                $('form button.has-enable').prop('disabled', false);
+                if(this.cancelRequestTimeout) {
+                    clearTimeout(self.cancelRequestTimeout);
+                }
+                if (socket) {
+                    socket.emit('chap-nhan', $.extend({}, self.clientId, { sdtLaiXe: dienthoai }));
+                }
+            };
+            
+            this.hoanThanh = function(){
+                $('.message').html('Hoan thanh chuyen di');
+                if (socket) {
+                    socket.emit('hoan-thanh', self.clientId);
+                }
+                $('form button').prop('disabled', true);
+            }
+            
+            this.tuChoiKhach = function(){
+                $('.message').html('Tu choi khach');
+                $('form button').prop('disabled', true);
+                if(this.cancelRequestTimeout) {
+                    clearTimeout(self.cancelRequestTimeout);
+                }
+                if (socket) {
+                    socket.emit('tu-choi', self.clientId);
+                }
+            };
+        }
+        
+        
+        $('#submit-request').submit(function (e) {
+            e.preventDefault();
+        });
+        io = new io();
+        var socket = io.connect('/');
+        if (socket) {
+            var person = null;
+            while(person == null) {
+                person = prompt("Vui lòng nhập số điện thoại");
+                if (person != null) {
+                    var taiXe = new TaiXe({sdt: person,_socket: socket});
+                    taiXe.initMap();
+                    taiXe.initSocketEvent();
+                }
+            }
+        } else {
+            alert("Không thể kết nối đến server vui lòng kiểm tra lại mạng");
+        }
+    })(jQuery);
+</script>
+</body>
+</html>

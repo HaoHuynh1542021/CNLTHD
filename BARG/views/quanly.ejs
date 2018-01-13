@@ -82,3 +82,152 @@
 <script src="/javascripts/quanly.js"></script>
 <script type="text/javascript" src="//maps.google.com/maps/api/js?key=AIzaSyBncB2ICS1K_lnsE7HvyF6UngwpH-REnM4&amp;sensor=false"></script>
 <script>
+    var currentQuanly = new QuanLy();
+    var objSelect = document.getElementById("loaixe");
+
+    function selectLoaiXe(valueToSet) {
+        for (var i = 0; i < objSelect.options.length; i++) {
+            if (objSelect.options[i].value == valueToSet) {
+                objSelect.options[i].selected = true;
+                return;
+            }
+        }
+    }
+    
+    function submitRequest(_person, _driver) {
+        var data = _person.getData();
+        data.taixe = _driver.getData().id;
+        var requestData = {
+            address: data.address,
+            diachi: data.diachi,
+            sdt: data.sdt,
+            id: data.id,
+            taixe: data.taixe,
+            lat: data.lat,
+            lng: data.lng,
+            sockId: data.sockId,
+            loaixe: data.loaixe
+        };
+        socket.emit('submit-request', requestData);
+        _driver.setIsBusy(true);
+        window.selectedDriver = false;
+    }
+    
+    io = new io();
+    var socket = io.connect('/');
+    var clientId = null;    
+    if (socket) {
+        socket.emit('quanly', {});
+        socket.on('have-client', function (data) {
+            if (data.sdt && data.diachi) {
+                $('#so-dien-thoai').val(data.sdt);
+                $('#dia-chi').val(data.diachi);
+                selectLoaiXe(data.loaixe);
+                clientId = data.id;
+                currentQuanly.addKhachHang(data, true);
+            }
+        });
+        socket.on('new-driver', function (data) {
+            if (data.diachi) {
+                currentQuanly.addTaiXe(data, false);
+            }
+        });
+        socket.on('dis-driver', function (data) {
+            if (data.id) {
+                currentQuanly.removePerson(data.id);
+            }
+        });
+
+        socket.on('tu-choi', function (data) {
+            if (data.taixe) {
+                var _driver = currentQuanly.getPerson(data.taixe);
+                _driver.setIsBusy(false);
+                currentQuanly.getPerson(data.id).showMe(true);
+            }
+        });
+        
+        socket.on('chap-nhan', function (data) {
+            if (data.id) {
+                $('#so-dien-thoai').val('');
+                $('#dia-chi').val('');
+                currentQuanly.removePerson(data.id);
+            }
+        });
+        
+        socket.on('hoan-thanh', function (data) {
+            if (data.taixe) {
+                var _driver = currentQuanly.getPerson(data.taixe);
+                _driver.setIsBusy(false);
+            }
+        });
+        
+        socket.on('cap-nhat-trang-thai', function (data) {
+            if(data.id) {
+                var _driver = currentQuanly.getPerson(data.id);
+                _driver.setIsBusy(true);
+            }
+        });
+        
+        socket.on('taixe-capnhat-diachi', function (data) {
+            if (data.id) {
+                currentQuanly.updateLocation(data.id, data);
+            }
+        });
+        
+    }
+    
+    $(".btn-tuchoi").click(function(e){
+        if(window.selectedKhachHang) {
+            var data = window.selectedKhachHang.getData();
+            socket.emit('tu-choi-khachhang', { sockId : data.sockId });
+            currentQuanly.removePerson(data.id);
+            window.selectedKhachHang = false;
+            alert("Đã từ chối khách");
+        }else {
+            alert("Vui lòng chọn khách hàng");
+        }
+        return false;
+    });
+    
+    $('.btn-tu-dong').click(function(e){
+        if(window.selectedKhachHang) {
+            var _person = window.selectedKhachHang;
+            window.selectedKhachHang.timTaiXeGanNhat(
+                currentQuanly.timTaiXe(window.selectedKhachHang),
+                function(taiXe){
+                    if(taiXe && !taiXe.isBusy) {
+                        submitRequest(_person, taiXe);
+                    } else {
+                        _person.showMe(true);
+                    }
+                });
+            window.selectedKhachHang = false;
+        } else {
+            alert("Vui lòng chọn khách hàng");   
+        }
+        return false;
+    });
+    
+    $('#submit-request').submit(function (e) {
+        e.preventDefault();
+        if (socket) {
+            if (window.selectedDriver) {
+                var _person = window.selectedKhachHang;
+                var _driver = window.selectedDriver;
+                if (_person && _driver && !_driver.isBusy) {
+                    submitRequest(_person, _driver);
+                } else {
+                    alert("Không tìm thấy khách hoặc tài xế đang bận");
+                }
+            } else {
+                alert("Vui lòng chọn tài xế");
+            }
+        }
+    });
+    initMap = function () {
+        currentQuanly.init();
+    };
+    window.onload = initMap();
+</script>
+</body>
+</html>
