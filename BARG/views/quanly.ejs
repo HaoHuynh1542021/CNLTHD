@@ -33,9 +33,22 @@
 </head>
 
 <body>
+    <nav class="navbar navbar-default navbar-fixed-top">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
+                    aria-expanded="false" aria-controls="navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" >Quản Lý</a>
+            </div>
+        </div>
+    </nav>
     <div class="container-fluid">
-        <div class="col-sm-1 col-sm-offset-1 col-md-10 col-md-offset-0 main">
-            <h1 class="page-header">Quản lý</h1>
+        <div class="col-sm-1 col-sm-offset-1 col-md-12 col-md-offset-0 main">
             <div class="row">
                 <div class="form-info">
                     <form class="submit-request" id="submit-request" name="submit-request">
@@ -179,7 +192,7 @@
     $(".btn-tuchoi").click(function(e){
         if(window.selectedKhachHang) {
             var data = window.selectedKhachHang.getData();
-            socket.emit('tu-choi-khachhang', { sockId : data.sockId });
+            socket.emit('tu-choi', { sockId : data.sockId });
             currentQuanly.removePerson(data.id);
             window.selectedKhachHang = false;
             alert("Đã từ chối khách");
