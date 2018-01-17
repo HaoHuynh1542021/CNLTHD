@@ -194,19 +194,19 @@
             };
             
             this.chapNhanKhach = function(){
-                $('.message').html('Chap nhan khach');
+                $('.message').html('Đã chấp nhận khách');
                 $('form button').prop('disabled', true);
                 $('form button.has-enable').prop('disabled', false);
                 if(this.cancelRequestTimeout) {
                     clearTimeout(self.cancelRequestTimeout);
                 }
                 if (socket) {
-                    socket.emit('chap-nhan', $.extend({}, self.clientId, { sdtLaiXe: dienthoai }));
+                    socket.emit('chap-nhan', $.extend({}, self.clientId, { sdtTaiXe: dienthoai }));
                 }
             };
             
             this.hoanThanh = function(){
-                $('.message').html('Hoan thanh chuyen di');
+                $('.message').html('Đã hoàn tất chuyến');
                 if (socket) {
                     socket.emit('hoan-thanh', self.clientId);
                 }
@@ -214,7 +214,7 @@
             }
             
             this.tuChoiKhach = function(){
-                $('.message').html('Tu choi khach');
+                $('.message').html('Đã từ chối khách');
                 $('form button').prop('disabled', true);
                 if(this.cancelRequestTimeout) {
                     clearTimeout(self.cancelRequestTimeout);

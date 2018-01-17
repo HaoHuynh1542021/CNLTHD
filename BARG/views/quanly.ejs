@@ -156,6 +156,7 @@
                 var _driver = currentQuanly.getPerson(data.taixe);
                 _driver.setIsBusy(false);
                 currentQuanly.getPerson(data.id).showMe(true);
+                alert("Tài xế từ chối người dùng");
             }
         });
         
@@ -192,7 +193,7 @@
     $(".btn-tuchoi").click(function(e){
         if(window.selectedKhachHang) {
             var data = window.selectedKhachHang.getData();
-            socket.emit('tu-choi', { sockId : data.sockId });
+            socket.emit('tu-choi-khach', { sockId : data.sockId });
             currentQuanly.removePerson(data.id);
             window.selectedKhachHang = false;
             alert("Đã từ chối khách");

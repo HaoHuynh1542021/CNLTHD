@@ -63,7 +63,7 @@ io.on('connection', function(socket){
             io.in('quanly').emit('taixe-capnhat-diachi', data);
         });
         
-        socket.on('tu-choi-khachhang', function(data){
+        socket.on('tu-choi-khach', function(data){
              if(data.sockId){
                  if(io.sockets.connected[data.sockId]) {
                      io.sockets.connected[data.sockId].emit('tu-choi', {msg: "Không còn xe nào trống"});
@@ -90,13 +90,17 @@ io.on('connection', function(socket){
                 cursorUser = 0;
             }
             var so = users[cursorUser];
-            data.quanly = so.id;
-            data.id = clientId++;
-            data.sockId = socket.id;
-            io.sockets.connected[so.id].emit('have-client', data);
-            persons.push({data: data, quanly: users[cursorUser].id, id: socket.id});
-            cursorUser++;
-            return false;
+            if (so != null){
+                data.quanly = so.id;
+                data.id = clientId++;
+                data.sockId = socket.id;
+                if (io.sockets.connected[so.id] != null){
+                    io.sockets.connected[so.id].emit('have-client', data);
+                    persons.push({data: data, quanly: users[cursorUser].id, id: socket.id});
+                    cursorUser++;
+                    return false;
+                }
+            }
         });
 
         socket.on('tu-choi', function (data) {
@@ -104,7 +108,7 @@ io.on('connection', function(socket){
                 io.sockets.connected[data.quanly].emit('tu-choi', data);
                 try {
                     drivers.forEach(function (so) {
-                        if (so.id == data.laixe) {
+                        if (so.id == data.taixe) {
                             so.isBusy = false;
                             throw new Error("");
                         }
@@ -140,7 +144,7 @@ io.on('connection', function(socket){
                         so.isBusy = true;
                         data.quanly = socket.id;
                         io.sockets.connected[so.id].emit('submit-request', data);
-                        io.in('quanly').emit('cap-nhat-trang-thai', {id: data.laixe});
+                        io.in('quanly').emit('cap-nhat-trang-thai', {id: data.taixe});
                         throw new Error("");
                     }
                 });
