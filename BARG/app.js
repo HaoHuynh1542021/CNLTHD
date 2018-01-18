@@ -132,11 +132,19 @@ io.on('connection', function(socket){
                 }catch (err){}
             }
         });
+
+        socket.on('bat-dau', function(data){
+            if(data.quanly) {
+                io.sockets.connected[data.quanly].emit('bat-dau', data);
+            }
+        });
+
         socket.on('hoan-thanh', function(data){
             if(data.quanly) {
                 io.sockets.connected[data.quanly].emit('hoan-thanh', data);
             }
         });
+
         socket.on('submit-request', function (data) {
             try {
                 drivers.forEach(function (so) {

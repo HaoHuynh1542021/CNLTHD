@@ -80,7 +80,7 @@ function Person(data) {
         if(!infowindow){
             infowindow = new google.maps.InfoWindow;
         }
-        infowindow.setContent("Địa Chỉ: " + _data.address + "<br/> Sdt: " + _data.sdt);
+        infowindow.setContent("Địa Chỉ: " + _data.address + "<br/> Số điện thoại: " + _data.sdt);
         infowindow.open(map,  _data.marker);
     };
     

@@ -53,7 +53,7 @@ function TaiXe(data) {
     this.clickMarker = function () {
         var _data = self.getData();
         window.selectedDriver = self;
-        infowindow.setContent("Số Điện Thoại: " + _data.sdt);
+        infowindow.setContent("Số điện thoại: " + _data.sdt);
         infowindow.open(map,  _data.marker);
     };
 }

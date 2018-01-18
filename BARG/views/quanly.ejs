@@ -168,10 +168,18 @@
             }
         });
         
+        socket.on('bat-dau', function (data) {
+            if (data.taixe) {
+                var _driver = currentQuanly.getPerson(data.taixe);
+                alert ('Tài xế đã bắt đầu chuyến đi');
+            }
+        });
+
         socket.on('hoan-thanh', function (data) {
             if (data.taixe) {
                 var _driver = currentQuanly.getPerson(data.taixe);
                 _driver.setIsBusy(false);
+                alert ('Tài xế đã hoàn tất chuyến đi');
             }
         });
         
